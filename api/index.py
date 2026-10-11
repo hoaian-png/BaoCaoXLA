@@ -208,9 +208,21 @@ def detect_vehicles_opencv(bgr_image, confidence=0.35):
 # ============================================================
 
 @app.route("/")
+@app.route("/api")
+@app.route("/api/index")
+@app.route("/api/index.py")
+@app.route("/api/app")
+@app.route("/api/app.py")
 def index():
     """Trang chủ Dashboard Hệ thống Giám sát & Đếm Xe."""
     return render_template("index.html")
+
+
+@app.route("/static/<path:filename>")
+@app.route("/api/static/<path:filename>")
+def serve_static(filename):
+    """Phục vụ file tĩnh trực tiếp qua Flask nếu CDN không bắt được."""
+    return send_from_directory(STATIC_DIR, filename)
 
 
 @app.route("/api/health")
@@ -482,6 +494,18 @@ def video_feed():
             time.sleep(0.05)
 
     return Response(gen(), mimetype="multipart/x-mixed-replace; boundary=frame")
+
+
+# ============================================================
+# CATCH-ALL ROUTE CHO MỌI URL ĐỂ CHỐNG LỖI 404 TRÊN VERCEL
+# ============================================================
+@app.route("/<path:path>")
+def catch_all(path):
+    """Bắt mọi đường dẫn không xác định và trả về giao diện Dashboard."""
+    if path.startswith("static/"):
+        rel_path = path.replace("static/", "", 1)
+        return send_from_directory(STATIC_DIR, rel_path)
+    return render_template("index.html")
 
 
 # Chạy trực tiếp cục bộ khi gọi `python api/index.py`
