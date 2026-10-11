@@ -684,12 +684,11 @@ def main():
         mode = "1"
 
     print("\n  CHỌN NGUỒN VIDEO ĐẦU VÀO:")
-    print("    [1] Video mẫu có sẵn: uploads/sample_parking_demo.mp4")
-    print("    [2] Video quay thực tế: uploads/Quay_man_hinh_2026-10-07_154410.mp4")
-    print("    [3] Webcam máy tính trực tiếp (Camera 0)")
-    print("    [4] Nhập đường dẫn file video hoặc link RTSP tùy chọn")
+    print("    [1] Video bãi đỗ xe mẫu: uploads/sample_parking_demo.mp4")
+    print("    [2] Webcam máy tính trực tiếp (Camera 0)")
+    print("    [3] Nhập đường dẫn file video hoặc link RTSP tùy chọn")
 
-    choice = input("👉 Nhập nguồn video (1-4) [Mặc định 1]: ").strip()
+    choice = input("👉 Nhập nguồn video (1-3) [Mặc định 1]: ").strip()
     if not choice:
         choice = "1"
 
@@ -701,17 +700,9 @@ def main():
         video_source = os.path.join(base_dir, "uploads", "sample_parking_demo.mp4")
         source_name = "sample_parking_demo.mp4"
     elif choice == "2":
-        fpath = os.path.join(base_dir, "uploads", "Quay_man_hinh_2026-10-07_154410.mp4")
-        if os.path.exists(fpath):
-            video_source = fpath
-            source_name = "Quay_man_hinh_2026-10-07_154410.mp4"
-        else:
-            video_source = os.path.join(base_dir, "uploads", "sample_parking_demo.mp4")
-            source_name = "sample_parking_demo.mp4"
-    elif choice == "3":
         video_source = 0
         source_name = "Webcam máy tính"
-    elif choice == "4":
+    elif choice == "3":
         p = input("Nhập đường dẫn file video / link camera: ").strip()
         video_source = int(p) if p.isdigit() else p
         source_name = str(p)
