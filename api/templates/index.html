@@ -1,0 +1,259 @@
+<!--
+  ============================================================
+  FILE: templates/index.html
+  HỆ THỐNG GIÁM SÁT & ĐẾM PHƯƠNG TIỆN BÃI ĐỖ THÔNG MINH
+  BÁO CÁO ĐỒ ÁN MÔN HỌC XỬ LÝ ẢNH SỐ (OPENCV • YOLOV8 • VERCEL CLOUD)
+  ============================================================
+-->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Parking - Hệ Thống Giám Sát & Đếm Xe Thông Minh</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
+</head>
+<body data-url-root="{{ request.script_root }}">
+
+    <!-- ==================== HEADER ==================== -->
+    <header class="app-header">
+        <div class="header-left">
+            <div class="logo-badge">
+                <span class="logo-icon">🚗</span>
+            </div>
+            <div class="brand-info">
+                <h1>SMART PARKING MONITOR</h1>
+                <p class="subtitle">Đồ Án Xử Lý Ảnh Số: Nhận Diện & Đếm Phương Tiện Bãi Đỗ Thời Gian Thực</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div id="systemStatus" class="status-pill status-online" role="status" aria-live="polite">
+                <span class="status-indicator"></span>
+                <span id="statusLabel">Vercel Cloud Online</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== MAIN DASHBOARD ==================== -->
+    <main class="dashboard-container">
+
+        <!-- CỘT 1: KHU VỰC VIDEO & ĐIỀU KHIỂN (LEFT) -->
+        <section class="video-panel" aria-label="Màn hình camera">
+            <!-- Khung chiếu video -->
+            <div class="video-viewport">
+                <!-- Video stream / Ảnh kết quả -->
+                <img id="videoFeed" src="" alt="Luồng video bãi đỗ xe" class="video-stream" style="display: none;">
+
+                <!-- Video phần cứng từ webcam trình duyệt (HTML5) -->
+                <video id="webcamVideo" autoplay playsinline muted style="display: none; width: 100%; height: 100%; object-fit: cover;"></video>
+                <canvas id="hiddenCanvas" style="display: none;"></canvas>
+
+                <!-- Placeholder khi chưa khởi động -->
+                <div id="videoPlaceholder" class="viewport-placeholder">
+                    <div class="placeholder-content">
+                        <div class="radar-pulse">
+                            <span class="radar-icon">📹</span>
+                        </div>
+                        <h3>Hệ Thống Sẵn Sàng Giám Sát</h3>
+                        <p>Bấm <strong>"🚗 Demo Mẫu"</strong> để xem phân tích ngay, hoặc chọn <strong>"Webcam"</strong> / <strong>"Tải File"</strong></p>
+                        <button type="button" class="btn btn-primary" style="margin-top: 15px; padding: 10px 24px; font-weight: bold;" onclick="runInstantDemo()">
+                            ⚡ XEM DEMO BÃI ĐỖ NGAY (1-CLICK)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- HUD Info Bar nổi trên video -->
+                <div class="video-overlay-bar">
+                    <div class="overlay-tag">
+                        <span class="tag-title">FPS:</span>
+                        <span id="fpsDisplay" class="tag-value">30.0</span>
+                    </div>
+                    <div class="overlay-tag">
+                        <span class="tag-title">ĐỘ PHÂN GIẢI:</span>
+                        <span id="resDisplay" class="tag-value">640x480</span>
+                    </div>
+                    <div class="overlay-tag">
+                        <span class="tag-title">MÔ HÌNH:</span>
+                        <span id="modelTagDisplay" class="tag-value text-accent">YOLOv8 + OpenCV</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khung giải thích thuật toán xử lý ảnh (hiển thị khi dùng Filter Lab) -->
+            <div id="filterExplanationBox" class="filter-info-box" style="display: none;">
+                <span class="filter-badge">🔍 THUẬT TOÁN XỬ LÝ ẢNH</span>
+                <p id="filterExplanationText" class="filter-desc">Đang tải thông tin thuật toán...</p>
+            </div>
+
+            <!-- Thanh điều khiển & Cài đặt nguồn -->
+            <div class="control-box">
+                <!-- Bộ chọn chế độ nguồn -->
+                <div class="source-mode-selector">
+                    <button type="button" class="mode-tab active" data-mode="demo" onclick="setSourceMode('demo')">
+                        🚗 Demo Mẫu
+                    </button>
+                    <button type="button" class="mode-tab" data-mode="webcam" onclick="setSourceMode('webcam')">
+                        📷 Webcam
+                    </button>
+                    <button type="button" class="mode-tab" data-mode="upload" onclick="setSourceMode('upload')">
+                        📁 Tải Ảnh / Video
+                    </button>
+                    <button type="button" class="mode-tab" data-mode="filters" onclick="setSourceMode('filters')">
+                        🔬 Thí Nghiệm Xử Lý Ảnh
+                    </button>
+                </div>
+
+                <!-- Input cấu hình nguồn tương ứng -->
+                <div class="source-inputs-wrapper">
+                    <!-- 1. Chế độ Demo -->
+                    <div id="inputDemoBox" class="source-input-row">
+                        <span style="font-size: 0.9rem; color: var(--text-secondary);">
+                            Bãi đỗ xe chuẩn COCO với 33 phương tiện được đánh dấu Bounding Box & HUD tiếng Việt.
+                        </span>
+                        <button type="button" class="btn btn-secondary" onclick="runInstantDemo()">
+                            🔄 Nạp Lại Dữ Liệu Mẫu
+                        </button>
+                    </div>
+
+                    <!-- 2. Webcam Input -->
+                    <div id="inputWebcamBox" class="source-input-row" style="display: none;">
+                        <span style="font-size: 0.9rem; color: var(--text-secondary);">
+                            Sử dụng Camera trực tiếp từ thiết bị (Laptop, Điện thoại) qua HTML5 Media Stream.
+                        </span>
+                    </div>
+
+                    <!-- 3. Upload File Input -->
+                    <div id="inputUploadBox" class="source-input-row" style="display: none;">
+                        <input type="file" id="mediaFileInput" accept="image/*,video/*" style="display: none;" onchange="handleFileUpload(event)">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('mediaFileInput').click()">
+                            📂 Chọn Ảnh / Video Bãi Đỗ...
+                        </button>
+                        <span id="uploadFileName" class="upload-hint">Chưa chọn file (JPG, PNG, MP4)</span>
+                    </div>
+
+                    <!-- 4. Thí nghiệm Bộ lọc Xử lý ảnh -->
+                    <div id="inputFiltersBox" class="source-input-row" style="display: none; flex-wrap: wrap; gap: 8px;">
+                        <button type="button" class="btn-filter" onclick="applyImageFilter('canny')">Tách Biên Canny</button>
+                        <button type="button" class="btn-filter" onclick="applyImageFilter('sobel')">Toán Tử Sobel</button>
+                        <button type="button" class="btn-filter" onclick="applyImageFilter('otsu')">Phân Ngưỡng Otsu</button>
+                        <button type="button" class="btn-filter" onclick="applyImageFilter('equalize')">Cân Bằng Histogram</button>
+                        <button type="button" class="btn-filter" onclick="applyImageFilter('morphology')">Hình Thái Học</button>
+                        <button type="button" class="btn-filter" onclick="applyImageFilter('hsv')">Không Gian HSV</button>
+                    </div>
+                </div>
+
+                <!-- Tùy chỉnh Độ tin cậy (Confidence) & Nút Thao tác -->
+                <div class="action-footer">
+                    <div class="slider-group">
+                        <label for="confSlider">Độ tin cậy (Confidence): <strong id="confValueText">45%</strong></label>
+                        <input type="range" id="confSlider" min="15" max="85" value="45" step="5" oninput="updateConfText(this.value)">
+                    </div>
+
+                    <div class="buttons-group">
+                        <button id="btnStart" class="btn btn-primary" onclick="startDetection()">
+                            ▶ BẮT ĐẦU
+                        </button>
+                        <button id="btnStop" class="btn btn-danger" onclick="stopDetection()" disabled>
+                            ⏹ DỪNG
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CỘT 2: THỐNG KÊ & NHẬT KÝ HOẠT ĐỘNG (RIGHT) -->
+        <aside class="stats-panel" aria-label="Bảng thống kê phương tiện">
+            <!-- Thẻ Tổng số xe (Nổi bật nhất) -->
+            <div class="card card-total">
+                <div class="card-total-header">
+                    <div>
+                        <span class="card-subtitle">SỐ LƯỢNG TRONG BÃI ĐỖ</span>
+                        <h2 class="card-title">TỔNG PHƯƠNG TIỆN</h2>
+                    </div>
+                    <span class="live-badge">REALTIME</span>
+                </div>
+                <div class="card-total-body">
+                    <div id="totalCount" class="total-big-number">33</div>
+                    <div class="total-unit">Xe đang đỗ (Sức chứa: 50 xe)</div>
+                </div>
+                <!-- Thanh tiến trình công suất bãi đỗ -->
+                <div class="capacity-bar-wrap">
+                    <div class="capacity-info">
+                        <span>Độ lấp đầy: <strong id="occupancyRate">66%</strong></span>
+                        <span>Chỗ trống: <strong id="availableSlots" class="text-accent">17</strong></span>
+                    </div>
+                    <div class="progress-track">
+                        <div id="occupancyBar" class="progress-fill" style="width: 66%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lưới 4 loại xe chi tiết -->
+            <div class="vehicle-grid">
+                <!-- 1. Ô tô -->
+                <div class="v-card v-car">
+                    <div class="v-icon-wrap">🚗</div>
+                    <div class="v-info">
+                        <span class="v-label">Ô Tô</span>
+                        <span id="carCount" class="v-count">29</span>
+                    </div>
+                </div>
+
+                <!-- 2. Xe máy -->
+                <div class="v-card v-moto">
+                    <div class="v-icon-wrap">🏍️</div>
+                    <div class="v-info">
+                        <span class="v-label">Xe Máy</span>
+                        <span id="motorcycleCount" class="v-count">0</span>
+                    </div>
+                </div>
+
+                <!-- 3. Xe buýt -->
+                <div class="v-card v-bus">
+                    <div class="v-icon-wrap">🚌</div>
+                    <div class="v-info">
+                        <span class="v-label">Xe Buýt</span>
+                        <span id="busCount" class="v-count">0</span>
+                    </div>
+                </div>
+
+                <!-- 4. Xe tải -->
+                <div class="v-card v-truck">
+                    <div class="v-icon-wrap">🚛</div>
+                    <div class="v-info">
+                        <span class="v-label">Xe Tải</span>
+                        <span id="truckCount" class="v-count">4</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng Nhật ký sự kiện trực tiếp -->
+            <div class="card log-card">
+                <div class="log-header">
+                    <h3>📜 Nhật Ký Hoạt Động</h3>
+                    <button type="button" class="btn-clear-log" onclick="clearLogs()" title="Xóa nhật ký">Làm mới</button>
+                </div>
+                <div id="activityLog" class="log-content">
+                    <div class="log-entry log-info">
+                        <span class="log-time">00:00:00</span>
+                        <span class="log-msg">Hệ thống sẵn sàng trên Vercel Serverless.</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="app-footer">
+        <div class="footer-inner">
+            <p><strong>Đồ Án Môn Học:</strong> Xử Lý Ảnh Số | Nhóm 6 Thành Viên (AI • OpenCV • Flask • Frontend • Vercel)</p>
+            <p class="copyright">Phát triển với Python, YOLOv8, OpenCV & Flask — Triển khai đám mây Vercel Serverless</p>
+        </div>
+    </footer>
+
+    <!-- Script điều khiển -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

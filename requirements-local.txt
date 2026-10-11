@@ -1,0 +1,11 @@
+# ============================================================
+# CÁC THƯ VIỆN DÀNH CHO MÁY CỤC BỘ (LOCAL WINDOWS SERVER)
+# Sử dụng đầy đủ YOLOv8 Nano và tăng tốc suy luận
+# Cài đặt: pip install -r requirements-local.txt
+# ============================================================
+flask>=3.0.0
+opencv-python>=4.8.0
+ultralytics>=8.1.0
+Pillow>=10.0.0
+numpy>=1.24.0
+werkzeug>=3.0.0

@@ -1,0 +1,9 @@
+# ============================================================
+# CÁC THƯ VIỆN DÀNH CHO DEPLOY VERCEL SERVERLESS
+# Tối ưu hóa kích thước dưới 250MB và tương thích Linux Headless
+# ============================================================
+Flask>=3.0.0
+opencv-python-headless>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0
+werkzeug>=3.0.0

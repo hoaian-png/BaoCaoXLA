@@ -1,0 +1,29 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Large weights and models
+yolov8n.pt
+*.pt
+*.onnx
+
+# Large video recordings (giữ cho dung lượng repo nhẹ < 5MB)
+uploads/*.mp4
+!uploads/sample_parking_demo.mp4
+
+# Word & Office documents
+*.docx
+*.doc
+
+# Vercel deployment artifacts
+.vercel/
+.idea/
+.vscode/
