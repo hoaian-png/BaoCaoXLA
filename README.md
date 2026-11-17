@@ -21,13 +21,14 @@
 ## 📁 CẤU TRÚC THƯ MỤC DỰ ÁN
 
 ```text
-C:\BaoCao\BaoCaoXLA\
+BaoCaoXLA/
 │
 ├── app.py                  # [TV3] File chính khởi chạy Flask Server
 ├── detector.py             # [TV1] Module AI YOLOv8 nhận diện và phân loại xe
 ├── video_processor.py      # [TV2] Module OpenCV xử lý ảnh và vẽ HUD tiếng Việt
 ├── routes.py               # [TV4] Module định tuyến API, video stream và upload
-├── requirements.txt        # Danh sách thư viện phụ thuộc
+├── requirements.txt        # Thư viện cho dashboard OpenCV và Vercel
+├── requirements-local.txt  # Thư viện cho bản YOLOv8 cục bộ
 ├── run.bat                 # Phím tắt click đúp chạy nhanh trên Windows
 ├── README.md               # Hướng dẫn chi tiết đồ án
 │
@@ -45,45 +46,53 @@ C:\BaoCao\BaoCaoXLA\
 
 ---
 
-## 🚀 HƯỚNG DẪN KHỞI CHẠY TRÊN MÁY TÍNH (VS CODE)
+## Cài đặt và sử dụng trên Windows
 
-### Cách 1: Chạy nhanh bằng 1 click (Tiện nhất)
-1. Mở thư mục `C:\BaoCao\BaoCaoXLA` trong File Explorer của Windows.
-2. Nhấp đúp chuột vào file **`run.bat`**.
-3. Hệ thống sẽ tự động khởi động máy chủ và mở trình duyệt web tại `http://127.0.0.1:5000`.
+Dùng Python 3.11 64-bit và Git. Tạo môi trường ảo trong thư mục dự án:
 
----
+```powershell
+git clone https://github.com/hoaian-png/BaoCaoXLA.git
+cd BaoCaoXLA
+py -3.11 -m venv .venv
+```
 
-### Cách 2: Chạy bằng Terminal trong VS Code
-1. Mở thư mục `C:\BaoCao\BaoCaoXLA` bằng **VS Code**.
-2. Mở Terminal tích hợp (`Ctrl + ~` hoặc `Terminal -> New Terminal`).
-3. Cài đặt các thư viện (nếu chưa cài):
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Khởi chạy máy chủ:
-   ```bash
-   python app.py
-   ```
-5. Mở trình duyệt web bất kỳ (Chrome, Edge, Cốc Cốc...) và truy cập địa chỉ:
-   ```text
-   http://127.0.0.1:5000
-   ```
+### Chạy dashboard với OpenCV
 
----
+Dùng bản này để thử dữ liệu mẫu, tải ảnh, dùng webcam từ trình duyệt và thử các bộ lọc xử lý ảnh. Bản triển khai Vercel dùng cùng điểm khởi chạy `api/index.py`.
 
-## 🎯 CÁCH SỬ DỤNG GIAO DIỆN WEB
+```powershell
+.\.venv\Scripts\python.exe -X utf8 -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m flask --app api.index run
+```
 
-1. **Sử dụng Webcam trực tiếp:**
-   - Chọn tab **📷 Webcam** (mặc định Camera 0).
-   - Nhấn nút **▶ BẮT ĐẦU** để xem video và đếm xe.
-2. **Kiểm thử bằng File Video:**
-   - Chọn tab **📁 Tải File Video** -> Nhấn **Chọn Video Từ Máy Tính...** để chọn file video mẫu (ví dụ: `.mp4`).
-   - Sau khi tải lên thành công, nhấn **▶ BẮT ĐẦU** để phân tích.
-3. **Kiểm thử bằng Camera IP / RTSP:**
-   - Chọn tab **🌐 Nhập Link / RTSP** -> Nhập địa chỉ luồng camera.
-   - Nhấn **▶ BẮT ĐẦU**.
-4. **Điều chỉnh độ nhạy (Confidence):**
-   - Kéo thanh trượt **Độ tin cậy** (mặc định 45%) để lọc các vật thể nhận diện chính xác nhất.
-5. **Dừng hệ thống:**
-   - Nhấn **⏹ DỪNG** để giải phóng camera và đặt lại số liệu về 0.
+Mở [http://127.0.0.1:5000](http://127.0.0.1:5000).
+
+1. Chọn **Demo Mẫu** rồi bấm **Nạp Lại Dữ Liệu Mẫu** để xem ảnh đã đánh dấu và số lượng xe.
+2. Chọn **Tải Ảnh / Video** và chọn một ảnh JPG hoặc PNG để phân tích. Luồng tải video hiện lưu được tệp, còn nút **Bắt đầu** chưa khởi chạy phân tích video đã tải.
+3. Chọn **Webcam**, bấm **Bắt đầu** và cấp quyền camera cho trình duyệt. Bấm **Dừng** khi hoàn tất.
+4. Chọn **Thí Nghiệm Xử Lý Ảnh** và bấm bộ lọc, ví dụ **Tách Biên Canny**, để xem kết quả trên ảnh mẫu.
+
+Xem thêm [hướng dẫn triển khai Vercel](HUONG_DAN_VERCEL.md).
+
+### Chạy YOLOv8 với video mẫu
+
+```powershell
+py -3.11 -m venv venv
+.\venv\Scripts\python.exe -X utf8 -m pip install -r requirements-local.txt
+.\venv\Scripts\python.exe app.py
+```
+
+Lần đầu cần Internet để tải `yolov8n.pt`. Giữ máy chủ chạy và mở PowerShell thứ hai tại thư mục dự án:
+
+```powershell
+$settings = @{ source = 'uploads/sample_parking_demo.mp4'; confidence = 0.45 } | ConvertTo-Json
+Invoke-RestMethod 'http://127.0.0.1:5000/api/start' -Method Post -ContentType 'application/json' -Body $settings
+```
+
+Mở [luồng video đã đánh dấu](http://127.0.0.1:5000/video_feed) và xem [thống kê hiện tại](http://127.0.0.1:5000/api/stats). Để dùng webcam của máy chủ, đổi giá trị `source` thành số `0`. Để dừng phiên, gọi:
+
+```powershell
+Invoke-RestMethod 'http://127.0.0.1:5000/api/stop' -Method Post
+```
+
+Trong bản YOLOv8, các mục demo, ảnh và bộ lọc trên dashboard cần những API hiện chỉ có ở bản OpenCV. `run.bat` cũng chạy bản YOLOv8 và dùng lệnh `python` từ môi trường đang hoạt động. Nhấn **Ctrl+C** ở terminal chạy Flask để tắt máy chủ.
