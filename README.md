@@ -5,19 +5,6 @@
 
 ---
 
-## 👥 BẢNG PHÂN CÔNG NHIỆM VỤ (6 THÀNH VIÊN)
-
-| STT | Thành Viên | Vai Trò | File Đảm Nhận | Nhiệm Vụ Chi Tiết |
-| :---: | :--- | :--- | :--- | :--- |
-| **1** | Thành viên 1 | **Chuyên gia AI / YOLO** | `detector.py` | Tải và cấu hình mô hình YOLOv8, trích xuất tọa độ Bounding Box, phân loại 4 nhóm phương tiện (Ô tô, Xe máy, Xe buýt, Xe tải), đếm số lượng tức thời. |
-| **2** | Thành viên 2 | **Chuyên gia OpenCV / Xử Lý Ảnh** | `video_processor.py` | Đọc khung hình, tính toán FPS, vẽ Bounding Box màu theo loại xe, vẽ bảng thông số HUD tiếng Việt bằng Pillow (không lỗi font), mã hóa JPEG. |
-| **3** | Thành viên 3 | **Backend Flask (Khởi tạo)** | `app.py` | Tạo ứng dụng Flask, cấu hình đường dẫn upload, mã hóa UTF-8 console Windows, liên kết các module và điều phối cổng chạy local server. |
-| **4** | Thành viên 4 | **Backend Flask (API & Luồng)** | `routes.py` | Xây dựng các API `/api/start`, `/api/stop`, `/api/stats`, `/api/upload`, stream video MJPEG `/video_feed`, quản lý phiên đa luồng an toàn. |
-| **5** | Thành viên 5 | **Frontend Developer (Layout & Logic)** | `templates/index.html`<br>`static/js/main.js` | Thiết kế cấu trúc giao diện Dashboard, viết logic gọi API, polling cập nhật số liệu realtime, xử lý tải file video từ máy tính. |
-| **6** | Thành viên 6 | **Frontend UI/UX (Thiết Kế & CSS)** | `static/css/style.css` | Thiết kế giao diện Dark Mode công nghệ cao, responsive đa kích thước màn hình, hiệu ứng ánh sáng neon, animation nhảy số và chuẩn accessibility. |
-
----
-
 ## 📁 CẤU TRÚC THƯ MỤC DỰ ÁN
 
 ```text
